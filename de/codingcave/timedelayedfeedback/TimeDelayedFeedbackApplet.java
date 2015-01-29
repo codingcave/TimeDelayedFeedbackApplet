@@ -21,6 +21,8 @@ import javax.swing.JPanel;
 import javax.swing.JSlider;
 import java.awt.Font;
 import javax.swing.SwingConstants;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ChangeEvent;
 
 
 
@@ -54,7 +56,9 @@ public class TimeDelayedFeedbackApplet extends Applet implements Runnable {
 	private JTextField jzField;
 	private JTextField xField;
 	private JTextField yField;
-
+	private JSlider lambdaSlider;
+	private JSlider tauSlider;
+	
 	public TimeDelayedFeedbackApplet() {
 		super();
 	}
@@ -96,11 +100,21 @@ public class TimeDelayedFeedbackApplet extends Applet implements Runnable {
 		lbltau.setBounds(523, 368, 25, 29);
 		add(lbltau);
 		
-		JSlider lambdaSlider = new JSlider();
+		lambdaSlider = new JSlider();
+		lambdaSlider.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				resimulate();
+			}
+		});
 		lambdaSlider.setBounds(536, 326, 413, 29);
 		add(lambdaSlider);
 		
-		JSlider tauSlider = new JSlider();
+		tauSlider = new JSlider();
+		tauSlider.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent arg0) {
+				resimulate();
+			}
+		});
 		tauSlider.setBounds(536, 368, 413, 29);
 		add(tauSlider);
 		
@@ -155,9 +169,14 @@ public class TimeDelayedFeedbackApplet extends Applet implements Runnable {
 		g = canvas.getGraphics();
 		f = canvas1.getGraphics();
 		h = canvas2.getGraphics();
-
+		
 	}
 
+	private void resimulate(){
+		int lambdaVal = lambdaSlider.getValue();
+		int taulVal = tauSlider.getValue();
+	}
+	
 	// define top canvas
 	private Canvas getPaintArea() {
 		canvas = new Canvas();
