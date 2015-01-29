@@ -58,7 +58,7 @@ public class TimeDelayedFeedbackApplet extends Applet implements Runnable {
 	private JTextField yField;
 	private JSlider lambdaSlider;
 	private JSlider tauSlider;
-	
+	JSlider omegaSlider;
 	public TimeDelayedFeedbackApplet() {
 		super();
 	}
@@ -76,7 +76,7 @@ public class TimeDelayedFeedbackApplet extends Applet implements Runnable {
 		// add AWT Controls to the container
 		this.setLayout(null);
 		this.setSize(1001, 766);
-		this.setSize(new Dimension(1001, 546));
+		this.setSize(new Dimension(1001, 584));
 		this.setBackground(Color.white);
 		this.add(getPaintArea(), null);
 		this.add(getCanvas1(), null);
@@ -119,53 +119,67 @@ public class TimeDelayedFeedbackApplet extends Applet implements Runnable {
 		add(tauSlider);
 		
 		JLabel lblInitialwerte = new JLabel("Initialwerte");
-		lblInitialwerte.setBounds(533, 409, 100, 16);
+		lblInitialwerte.setBounds(541, 451, 100, 16);
 		add(lblInitialwerte);
 		
 		JLabel lblJx = new JLabel("J_x");
-		lblJx.setBounds(543, 437, 25, 16);
+		lblJx.setBounds(551, 479, 25, 16);
 		add(lblJx);
 		
 		JLabel lblJy = new JLabel("J_y");
-		lblJy.setBounds(543, 465, 25, 16);
+		lblJy.setBounds(551, 507, 25, 16);
 		add(lblJy);
 		
 		JLabel lblJz = new JLabel("J_z");
-		lblJz.setBounds(543, 494, 25, 16);
+		lblJz.setBounds(551, 536, 25, 16);
 		add(lblJz);
 		
 		JLabel lblX = new JLabel("x");
-		lblX.setBounds(708, 437, 25, 16);
+		lblX.setBounds(716, 479, 25, 16);
 		add(lblX);
 		
 		JLabel lblY = new JLabel("y");
-		lblY.setBounds(708, 465, 25, 16);
+		lblY.setBounds(716, 507, 25, 16);
 		add(lblY);
 		
 		jxField = new JTextField();
-		jxField.setBounds(580, 431, 119, 28);
+		jxField.setBounds(588, 473, 119, 28);
 		add(jxField);
 		jxField.setColumns(10);
 		
 		jyField = new JTextField();
 		jyField.setColumns(10);
-		jyField.setBounds(580, 457, 119, 28);
+		jyField.setBounds(588, 499, 119, 28);
 		add(jyField);
 		
 		jzField = new JTextField();
 		jzField.setColumns(10);
-		jzField.setBounds(580, 488, 119, 28);
+		jzField.setBounds(588, 530, 119, 28);
 		add(jzField);
 		
 		xField = new JTextField();
 		xField.setColumns(10);
-		xField.setBounds(718, 431, 119, 28);
+		xField.setBounds(726, 473, 119, 28);
 		add(xField);
 		
 		yField = new JTextField();
 		yField.setColumns(10);
-		yField.setBounds(718, 464, 119, 28);
+		yField.setBounds(726, 506, 119, 28);
 		add(yField);
+		
+		JLabel lblomega = new JLabel("<html>&omega;</html>");
+		lblomega.setFont(new Font("Lucida Grande", Font.PLAIN, 16));
+		lblomega.setBounds(523, 407, 25, 29);
+		add(lblomega);
+		
+		omegaSlider = new JSlider();
+		omegaSlider.setBounds(536, 407, 413, 29);
+		omegaSlider.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent arg0) {
+				resimulate();
+			}
+		});
+		add(omegaSlider);
 		g = canvas.getGraphics();
 		f = canvas1.getGraphics();
 		h = canvas2.getGraphics();
@@ -175,6 +189,7 @@ public class TimeDelayedFeedbackApplet extends Applet implements Runnable {
 	private void resimulate(){
 		int lambdaVal = lambdaSlider.getValue();
 		int taulVal = tauSlider.getValue();
+		int omega = omegaSlider.getValue();
 	}
 	
 	// define top canvas
