@@ -11,6 +11,7 @@ import java.awt.Label;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.TextField;
+import java.util.Iterator;
 import java.util.Random;
 
 import javax.swing.JApplet;
@@ -64,6 +65,7 @@ public class TimeDelayedFeedbackApplet extends Applet implements Runnable {
 	}
 
 	public void init() {
+		Integrator x = new Integrator();
 		graphheadingLabel = new JLabel();
 		graphheadingLabel.setBounds(new Rectangle(96, 27, 360, 22));
 		graphheadingLabel.setText("Deine Mudda");
