@@ -5,13 +5,14 @@ import org.apache.commons.math3.ode.nonstiff.ThreeEighthesIntegrator;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class Integrator extends TimerTask {
+public class Integrator extends TimerTask implements ParameterChanged {
 	private ThreeEighthesIntegrator _int;
 	private Pyragas_ODE _ode;
 	private Timer _timer;
 	private double t = 0;
 	private double dt = 0.01;
 	private double[] v = new double[] { 1, 1, 1, 1, 1 };
+	private TimeDelayedFeedbackApplet _obs;
 	
 	/*
 	private void printV(double[] V) {
@@ -22,12 +23,14 @@ public class Integrator extends TimerTask {
 		System.out.println();
 	}*/
 	
-	public Integrator() {		
+	public Integrator(TimeDelayedFeedbackApplet obs) {		
 		_timer = new Timer();
 		_timer.schedule(this, 0, //initial delay
 		        1 * 100); //subsequent rate
 		_ode = new Pyragas_ODE();
 		_int = new ThreeEighthesIntegrator(.01);
+		_obs = obs;
+		_obs.registerParameterListener(this);
 		
 		System.out.println("Start");
 		long startTime = System.nanoTime();
@@ -50,6 +53,13 @@ public class Integrator extends TimerTask {
 		t += dt;
 		//printV(v);
 		_ode.AddPoint(v);
+		_obs.DrawAllThatDamnPoints(_ode.getTimeList());
+	}
+
+	@Override
+	public void stinkeFinger(Object Sender, ParameterChangedEvent args) {
+		// TODO Auto-generated method stub
+		
 	}
 	
 	

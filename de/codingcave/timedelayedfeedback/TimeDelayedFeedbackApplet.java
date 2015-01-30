@@ -26,9 +26,11 @@ import javax.swing.SwingConstants;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 
+import de.codingcave.timedelayedfeedback.Pyragas_ODE.ODE_Point;
 
 
-public class TimeDelayedFeedbackApplet extends Applet implements Runnable {
+
+public class TimeDelayedFeedbackApplet extends Applet implements Runnable, ParameterChangedObervable {
 	private static final long serialVersionUID = 1L;
 	Thread thr;
 
@@ -72,7 +74,7 @@ public class TimeDelayedFeedbackApplet extends Applet implements Runnable {
 	}
 
 	public void init() {
-		integrator = new Integrator();
+		integrator = new Integrator(this);
 		graphheadingLabel = new JLabel();
 		graphheadingLabel.setBounds(new Rectangle(96, 27, 360, 22));
 		graphheadingLabel.setText("Deine Mudda");
@@ -314,14 +316,14 @@ public class TimeDelayedFeedbackApplet extends Applet implements Runnable {
 	 * add another listener who wants to be informed about changes of omega, tau and lambda
 	 * @param listener
 	 */
-	private void registerParameterListener(ParameterChanged listener){
+	public void registerParameterListener(ParameterChanged listener){
 		kekstoaster.add(listener);
 	}
 	/**
 	 * remove a listener from the event chain
 	 * @param listener
 	 */
-	private void removeParameterListener(ParameterChanged listener){
+	public void removeParameterListener(ParameterChanged listener){
 		kekstoaster.remove(listener);
 	}
 	// define top canvas
@@ -343,6 +345,10 @@ public class TimeDelayedFeedbackApplet extends Applet implements Runnable {
 	}
 
 	public void run() {
+	}
+	
+	public void DrawAllThatDamnPoints(TimeList<ODE_Point> t) {
+		
 	}
 
 	public void start() {

@@ -24,6 +24,10 @@ public class Pyragas_ODE implements FirstOrderDifferentialEquations {
 		_list.Add(new ODE_Point(x[0], x[1], x[2], x[3], x[4]));
 	}
 	
+	public TimeList<ODE_Point> getTimeList() {
+		return _list;
+	}
+	
 	private double g(double x, double y) {
 		double[] d_tau = _list.getPointer(0).getPoint();
 		return g0 + lambda * (d_tau[0] * d_tau[0] - x * x + d_tau[1] * d_tau[1] - y * y);
