@@ -25,8 +25,7 @@ public class Integrator extends TimerTask implements ParameterChanged {
 	
 	public Integrator(TimeDelayedFeedbackApplet obs) {		
 		_timer = new Timer();
-		_timer.schedule(this, 0, //initial delay
-		        1 * 100); //subsequent rate
+		
 		_ode = new Pyragas_ODE();
 		_int = new ThreeEighthesIntegrator(.01);
 		_obs = obs;
@@ -44,6 +43,8 @@ public class Integrator extends TimerTask implements ParameterChanged {
 		long duration = (endTime - startTime);
 		System.out.println("D: " + ((double)duration/1000000) + "s");
 		
+		_timer.schedule(this, 0, //initial delay
+		        1 * 100); //subsequent rate
 	}
 
 	@Override

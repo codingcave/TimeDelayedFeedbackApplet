@@ -133,6 +133,10 @@ public class TimeList<E> implements Iterable<E> {
 	public double getCurrentTime() {
 		return this._currentTime;
 	}
+	
+	public double getTimeStep() {
+		return this._dt;
+	}
 
 	@Override
 	public Iterator<E> iterator() {

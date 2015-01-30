@@ -74,6 +74,7 @@ public class TimeDelayedFeedbackApplet extends Applet implements Runnable, Param
 	}
 
 	public void init() {
+		kekstoaster = new Vector<ParameterChanged>();
 		integrator = new Integrator(this);
 		graphheadingLabel = new JLabel();
 		graphheadingLabel.setBounds(new Rectangle(96, 27, 360, 22));
@@ -348,7 +349,7 @@ public class TimeDelayedFeedbackApplet extends Applet implements Runnable, Param
 	}
 	
 	public void DrawAllThatDamnPoints(TimeList<ODE_Point> t) {
-		
+		System.out.println(t._currentTime);
 	}
 
 	public void start() {
