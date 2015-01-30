@@ -145,7 +145,7 @@ public class TimeList<E> implements Iterable<E> {
 			}
 
 			@Override
-			public E next() {				
+			public E next() {
 				item = (item == null) ? _root : item._next;				 
 				return item.getValue();
 			}

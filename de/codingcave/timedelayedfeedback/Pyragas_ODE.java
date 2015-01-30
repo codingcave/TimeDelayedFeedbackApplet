@@ -12,7 +12,7 @@ public class Pyragas_ODE implements FirstOrderDifferentialEquations {
 	private double k = 8.1; // MHz 
 	private double w_0 = 0.05; // MHz 
 	private double w = 8; // MHz
-	private int N = 100;
+	private int N = 10000;
 	
 	public Pyragas_ODE() {
 		ODE_Point d = new ODE_Point(0, 0, 0, 0, 0);
