@@ -13,6 +13,7 @@ import java.awt.Rectangle;
 import java.awt.TextField;
 import java.util.Iterator;
 import java.util.Random;
+import java.util.Vector;
 
 import javax.swing.JApplet;
 import javax.swing.JButton;
@@ -59,13 +60,19 @@ public class TimeDelayedFeedbackApplet extends Applet implements Runnable {
 	private JTextField yField;
 	private JSlider lambdaSlider;
 	private JSlider tauSlider;
-	JSlider omegaSlider;
+	private Integrator integrator;
+	private JSlider omegaSlider;
+	private Vector<ParameterChanged> kekstoaster;
+	private int border = 10;
+	private int tickSize = 5;
+	private int circleSize = 1;
+	
 	public TimeDelayedFeedbackApplet() {
 		super();
 	}
 
 	public void init() {
-		Integrator x = new Integrator();
+		integrator = new Integrator();
 		graphheadingLabel = new JLabel();
 		graphheadingLabel.setBounds(new Rectangle(96, 27, 360, 22));
 		graphheadingLabel.setText("Deine Mudda");
@@ -187,13 +194,136 @@ public class TimeDelayedFeedbackApplet extends Applet implements Runnable {
 		h = canvas2.getGraphics();
 		
 	}
+	
+	private void paintScaledArrayToCanvas(Canvas canvas,double[] xValues, double[] yValues) throws Exception{
+		if(xValues.length != yValues.length)
+			throw new Exception();
+		double[] extremeX = getMinimumAndMaximumOfArry(xValues);
+		double[] extremeY = getMinimumAndMaximumOfArry(yValues);
+		int[] numberOfTicks = {10,10};
+		double[] minVals = {extremeX[0], extremeY[0]};
+		double[] maxVals = {extremeX[1], extremeY[1]};
+		double[] scaleFacs = paintScales(canvas, numberOfTicks, minVals, maxVals);
+		paintActualPointsToCanvas(canvas, scaleFacs, xValues, yValues);
+	}
+	
+	private void paintActualPointsToCanvas(Canvas canvas, double[] scaleFacs, double[] xVals, double[] yVals){
+		int offsetX = border;
+		int offsetY = canvas.getHeight()-border;
+		Graphics g = canvas.getGraphics();
+		for(int i=0; i<xVals.length;i++){
+			g.drawOval(offsetX+(int) (xVals[i]*scaleFacs[0]), offsetY+(int) (yVals[i]*scaleFacs[1]), circleSize, circleSize);
+			
+		}
+	}
+	private double[] getMinimumAndMaximumOfArry(double[] values){
+		double minVal=0.0, maxVal=0.0;
+		double[] retVal = new double[2];
+		for(int i=0;	i<values.length	;i++){
+			if(values[i]<minVal)
+				minVal=values[i];
+			if(values[i]>maxVal)
+				maxVal = values[i];
+		}
+		retVal[0]=minVal;
+		retVal[1]=maxVal;
+		return retVal;
+	}
+	
+	private double[] paintScales(Canvas canvas, int[] numberOfTicks, double[] minVal, double[] maxVal) throws Exception{
+		double scaleFacs[] = {-1.0,-1.0};
+		if(numberOfTicks.length != 2 || minVal.length != 2 || maxVal.length != 2)
+			throw new Exception();
+		
+		scaleFacs[0]=paintXScale(canvas, numberOfTicks[0], minVal[0], maxVal[0]);
+		scaleFacs[1]=paintYScale(canvas, numberOfTicks[1], minVal[1], maxVal[1]);
+		return scaleFacs;
+	}
+	
+	private double paintXScale(Canvas canvas, int numberOfTicks, double minVal, double maxVal, boolean cutoff){
+		int width = canvas.getWidth();
+		double deltaX = maxVal - minVal;
+		double dX = deltaX/numberOfTicks;
+		width -= border;
+		if(cutoff)
+			dX = (double) (width/numberOfTicks) < dX ? dX : (double) (width/numberOfTicks);
+		int heightPixel = canvas.getHeight() - border; // wenn skala oben erscheinen soll auch nur border
+		Graphics g = canvas.getGraphics();
+		//paint the line
+		g.drawLine(border, heightPixel, width, heightPixel);
+		
+		//paint the ticks and there numbers
+		int x;
+		for(int i=0; i< numberOfTicks; i++){
+			x =  (int) (i*dX);
+			g.drawLine(x, (heightPixel - tickSize/2), x, (heightPixel + tickSize/2));
+		}
+		return deltaX/width;
+	}
+	private double paintXScale(Canvas canvas, int numberOfTicks, double minVal, double maxVal){
+		return paintXScale( canvas,  numberOfTicks,  minVal,  maxVal, false);
+	}
+	private double paintYScale(Canvas canvas, int numberOfTicks, double minVal, double maxVal,boolean cutoff){
+		int height = canvas.getHeight();
+		double deltaY = maxVal - minVal;
+		double dY = deltaY/numberOfTicks;
+		height -= border;
+		if(cutoff)
+			dY = (double) (height/numberOfTicks) < dY ? dY : (double) (height/numberOfTicks);
+		int widthPixel = border; // wenn skala oben erscheinen soll auch nur border
+		Graphics g = canvas.getGraphics();
+		//paint the line
+		g.drawLine(widthPixel, border , widthPixel, height);
+		
+		//paint the ticks and there numbers
+		int y;
+		for(int i=0; i< numberOfTicks; i++){
+			y= (int) (i*dY);
+			g.drawLine(widthPixel - tickSize/2, y, widthPixel+tickSize/2, y);
+		}
+		return deltaY/height;
+	}
+	private double paintYScale(Canvas canvas, int numberOfTicks, double minVal, double maxVal){
+		return paintYScale( canvas,  numberOfTicks,  minVal,  maxVal, false);
+	}
+	
+	/**
+	 * Event handling method for any changes on the sliderz
+	 */
 
 	private void resimulate(){
 		int lambdaVal = lambdaSlider.getValue();
 		int taulVal = tauSlider.getValue();
-		int omega = omegaSlider.getValue();
+		int omegaVal = omegaSlider.getValue();
+		callParamEventListeners(taulVal, omegaVal, lambdaVal);
 	}
 	
+	/**
+	 * Call all the listenerz
+	 * @param tau
+	 * @param omega
+	 * @param lambda
+	 */
+	private void callParamEventListeners(int tau, int omega, int lambda){
+		ParameterChangedEvent args = new ParameterChangedEvent(tau, omega, lambda);
+		for(int i=0; i < kekstoaster.size(); i++)
+			kekstoaster.get(i).stinkeFinger(this, args);
+		
+	}
+	/**
+	 * add another listener who wants to be informed about changes of omega, tau and lambda
+	 * @param listener
+	 */
+	private void registerParameterListener(ParameterChanged listener){
+		kekstoaster.add(listener);
+	}
+	/**
+	 * remove a listener from the event chain
+	 * @param listener
+	 */
+	private void removeParameterListener(ParameterChanged listener){
+		kekstoaster.remove(listener);
+	}
 	// define top canvas
 	private Canvas getPaintArea() {
 		canvas = new Canvas();
@@ -234,13 +364,8 @@ public class TimeDelayedFeedbackApplet extends Applet implements Runnable {
 
 		return false;
 	}
-
-	/**
-	 * @deprecated
-	 * Alte Funktion, die Balkendiagramme zeichnet
-	 * @param y1
-	 * @param y2
-	 */
+	/*
+	
 	public void paint(double y1, double y2) {
 		g.clearRect(0, 0, 400, 400); // first clear
 		// init variables
@@ -350,11 +475,7 @@ public class TimeDelayedFeedbackApplet extends Applet implements Runnable {
 		}
 	}
 
-	public Color randomColor() {
-		Random rand;
-		rand = new Random();
-		return (new Color(rand.nextInt(256), rand.nextInt(256), rand.nextInt(256)));
-	}
+	
 
 	/**
 	 * This method initializes button2
@@ -368,7 +489,11 @@ public class TimeDelayedFeedbackApplet extends Applet implements Runnable {
 		}
 		return button2;
 	}
-
+	public Color randomColor() {
+		Random rand;
+		rand = new Random();
+		return (new Color(rand.nextInt(256), rand.nextInt(256), rand.nextInt(256)));
+	}
 	/**
 	 * This method initializes canvas2
 	 * 
@@ -382,6 +507,7 @@ public class TimeDelayedFeedbackApplet extends Applet implements Runnable {
 		}
 		return canvas2;
 	}
+	/*
 	public void paintMigrationGraph(double[][] hppg){
 		h.clearRect(0, 0, 450, 260);
 		for (int i =0;i<hppg[0].length;i++){
@@ -398,5 +524,5 @@ public class TimeDelayedFeedbackApplet extends Applet implements Runnable {
 		//thresholdValueLabel.setText(String.valueOf(th));
 		h.setColor(Color.cyan);
 		//h.drawLine(40, 260 - threshold, 450, 260 - threshold);
-	}
+	}*/
 }
