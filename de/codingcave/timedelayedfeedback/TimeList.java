@@ -137,6 +137,10 @@ public class TimeList<E> implements Iterable<E> {
 	public double getTimeStep() {
 		return this._dt;
 	}
+	
+	public double getSize() {
+		return this._size;
+	}
 
 	@Override
 	public Iterator<E> iterator() {
