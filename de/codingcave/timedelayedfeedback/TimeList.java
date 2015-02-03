@@ -138,7 +138,7 @@ public class TimeList<E> implements Iterable<E> {
 		return this._dt;
 	}
 	
-	public double getSize() {
+	public int getSize() {
 		return this._size;
 	}
 

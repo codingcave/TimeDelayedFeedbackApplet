@@ -13,6 +13,7 @@ public class Integrator extends TimerTask implements ParameterChanged {
 	private double dt = 0.01;
 	private double[] v = new double[] { 1, 1, 1, 1, 1 };
 	private TimeDelayedFeedbackApplet _obs;
+	private int _stepsPerTime = 2000;
 	
 	/*
 	private void printV(double[] V) {
@@ -35,7 +36,10 @@ public class Integrator extends TimerTask implements ParameterChanged {
 		long startTime = System.nanoTime();
 				
 		for(int i = 0; i < 1000; i++) {
-			run();
+			v = _int.singleStep(_ode, t, v, t + dt);
+			t += dt;
+			//printV(v);
+			_ode.AddPoint(v);
 		}
 		long endTime = System.nanoTime();
 		System.out.println("DONE!");
@@ -49,13 +53,18 @@ public class Integrator extends TimerTask implements ParameterChanged {
 
 	@Override
 	public void run() { // Calculate next step
+		
 		// TODO Auto-generated method stub
-		v = _int.singleStep(_ode, t, v, t + dt);
-		t += dt;
-		//printV(v);
-		_ode.AddPoint(v);
+		for(int i=0; i < _stepsPerTime; i++){
+			v = _int.singleStep(_ode, t, v, t + dt);
+			t += dt;
+			//printV(v);
+			_ode.AddPoint(v);
+		}
 		_obs.DrawAllThatDamnPoints(_ode.getTimeList());
 	}
+	
+	
 
 	@Override
 	public void stinkeFinger(Object Sender, ParameterChangedEvent args) {

@@ -50,7 +50,8 @@ public class TimeDelayedFeedbackApplet extends Applet implements Runnable, Param
 	int canvas1Width = 426;
 	int canvas1Height = 250;
 	boolean Scale=false;
-	
+	boolean _drawingState = false;
+	boolean _init = false;
 	
 	private JLabel errorLabel = null;
 	private JLabel graphheadingLabel = null;
@@ -192,44 +193,65 @@ public class TimeDelayedFeedbackApplet extends Applet implements Runnable, Param
 			}
 		});
 		add(omegaSlider);
-		g = canvas.getGraphics();
-		f = canvas1.getGraphics();
-		h = canvas2.getGraphics();
-		
+		//g = canvas.getGraphics();
+		//f = canvas1.getGraphics();
+		//h = canvas2.getGraphics();
+		_init = true;
 	}
 	
 	private void paintScaledArrayToCanvas(Canvas canvas,double[] xValues, double[] yValues) throws Exception{
 		if(xValues.length != yValues.length)
 			throw new Exception();
+		_drawingState = true;
+		System.out.println("Checking for min and max");
 		double[] extremeX = getMinimumAndMaximumOfArry(xValues);
 		double[] extremeY = getMinimumAndMaximumOfArry(yValues);
 		int[] numberOfTicks = {10,10};
 		double[] minVals = {extremeX[0], extremeY[0]};
 		double[] maxVals = {extremeX[1], extremeY[1]};
+		System.out.println("minX "+ extremeX[0] + " minY " + extremeY[0] + " maxX " + extremeX[1] + " maxY " + extremeY[1]);
+		System.out.println("painting scales");
 		double[] scaleFacs = paintScales(canvas, numberOfTicks, minVals, maxVals);
-		paintActualPointsToCanvas(canvas, scaleFacs, xValues, yValues);
+		System.out.println("painting points");
+		paintActualPointsToCanvas(canvas, scaleFacs, xValues, yValues,  maxVals);
+		_drawingState = false;
 	}
 	
-	private void paintActualPointsToCanvas(Canvas canvas, double[] scaleFacs, double[] xVals, double[] yVals){
+	private void paintActualPointsToCanvas(Canvas canvas, double[] scaleFacs, double[] xVals, double[] yVals, double[] maxVals){
 		int offsetX = border;
 		int offsetY = canvas.getHeight()-border;
+		
+		System.out.println("xFac" + scaleFacs[0] + " yFac " +scaleFacs[1]);
 		Graphics g = canvas.getGraphics();
+		int x,y;
 		for(int i=0; i<xVals.length;i++){
-			g.drawOval(offsetX+(int) (xVals[i]*scaleFacs[0]), offsetY+(int) (yVals[i]*scaleFacs[1]), circleSize, circleSize);
+			// xVals 1.0 Skala [0.9, 1.1] Breite von 400
+			// diffX = 0.2 => Pixel/x = Breite/diffX = 400/0.2 = 2000
+			// xVal = 1.0 => Pixel 200
+			// (xMax - xVal) = 0.1  = (xMax - xVal)*Breite/diffX = PixelZumMalen
+			
+			x = (int) ((maxVals[0] - xVals[i])*scaleFacs[0]) + offsetX;
+			y = offsetY+(int) ((maxVals[1] -yVals[i])*scaleFacs[1]);
+			if(i== 1)
+			System.out.println("x: " + x + " y " + y);
+			
+			g.drawOval(offsetX+(int) ((maxVals[0] - xVals[i])*scaleFacs[0]), offsetY+(int) ((maxVals[1] -yVals[i])*scaleFacs[1]), circleSize, circleSize);
 			
 		}
 	}
 	private double[] getMinimumAndMaximumOfArry(double[] values){
-		double minVal=0.0, maxVal=0.0;
+		double minVal=values[0], maxVal=values[0];
 		double[] retVal = new double[2];
 		for(int i=0;	i<values.length	;i++){
 			if(values[i]<minVal)
 				minVal=values[i];
+			
 			if(values[i]>maxVal)
 				maxVal = values[i];
 		}
 		retVal[0]=minVal;
 		retVal[1]=maxVal;
+		
 		return retVal;
 	}
 	
@@ -261,7 +283,9 @@ public class TimeDelayedFeedbackApplet extends Applet implements Runnable, Param
 			x =  (int) (i*dX);
 			g.drawLine(x, (heightPixel - tickSize/2), x, (heightPixel + tickSize/2));
 		}
-		return deltaX/width;
+		//System.out.println("minVal " + minVal + " maxVal " + maxVal + " deltaX " + deltaX + " fac: " + width/deltaX);
+		//System.out.println("width " + width);
+		return width/deltaX;
 	}
 	private double paintXScale(Canvas canvas, int numberOfTicks, double minVal, double maxVal){
 		return paintXScale( canvas,  numberOfTicks,  minVal,  maxVal, false);
@@ -284,7 +308,7 @@ public class TimeDelayedFeedbackApplet extends Applet implements Runnable, Param
 			y= (int) (i*dY);
 			g.drawLine(widthPixel - tickSize/2, y, widthPixel+tickSize/2, y);
 		}
-		return deltaY/height;
+		return height/deltaY;
 	}
 	private double paintYScale(Canvas canvas, int numberOfTicks, double minVal, double maxVal){
 		return paintYScale( canvas,  numberOfTicks,  minVal,  maxVal, false);
@@ -349,7 +373,25 @@ public class TimeDelayedFeedbackApplet extends Applet implements Runnable, Param
 	}
 	
 	public void DrawAllThatDamnPoints(TimeList<ODE_Point> t) {
-		System.out.println(t._currentTime);
+		//System.out.println(t._currentTime + " malt er? " + _drawingState);
+		if(!_drawingState && _init){
+			
+			Iterator<ODE_Point> it = t.iterator();
+	        double[] p;
+	        double[] n = new double[t.getSize()];
+	        double[] times = new double[t.getSize()];
+	        for(int i = 0; it.hasNext(); i++) {
+	            p = it.next().getPoint();
+	            times[i] = t.getCurrentTime() - i * t.getTimeStep();
+	            n[i] = p[0]*p[0]+p[1]*p[1];
+	        }
+			try {
+				paintScaledArrayToCanvas(canvas, times, n);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 
 	public void start() {
