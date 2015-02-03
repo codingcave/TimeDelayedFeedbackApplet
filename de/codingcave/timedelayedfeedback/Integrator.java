@@ -13,7 +13,8 @@ public class Integrator extends TimerTask implements ParameterChanged {
 	private double dt = 0.01;
 	private double[] v = new double[] { 1, 1, 1, 1, 1 };
 	private TimeDelayedFeedbackApplet _obs;
-	private int _stepsPerTime = 2000;
+	private int _stepsPerTime = 20;
+	private int _delay = 100;
 	
 	/*
 	private void printV(double[] V) {
@@ -48,7 +49,7 @@ public class Integrator extends TimerTask implements ParameterChanged {
 		System.out.println("D: " + ((double)duration/1000000) + "s");
 		
 		_timer.schedule(this, 0, //initial delay
-		        1 * 1000); //subsequent rate
+				_delay); //subsequent rate
 	}
 
 	@Override

@@ -7,6 +7,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.Label;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -22,6 +23,8 @@ import javax.swing.JTextField;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import java.awt.Font;
+import java.awt.image.ImageObserver;
+
 import javax.swing.SwingConstants;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
@@ -211,18 +214,35 @@ public class TimeDelayedFeedbackApplet extends Applet implements Runnable, Param
 		double[] maxVals = {extremeX[1], extremeY[1]};
 		System.out.println("minX "+ extremeX[0] + " minY " + extremeY[0] + " maxX " + extremeX[1] + " maxY " + extremeY[1]);
 		System.out.println("painting scales");
-		double[] scaleFacs = paintScales(canvas, numberOfTicks, minVals, maxVals);
-		System.out.println("painting points");
-		paintActualPointsToCanvas(canvas, scaleFacs, xValues, yValues,  maxVals);
-		_drawingState = false;
-	}
-	
-	private void paintActualPointsToCanvas(Canvas canvas, double[] scaleFacs, double[] xVals, double[] yVals, double[] maxVals){
+		Image img = canvas.createImage(canvas1Width, canvas1Height);
+		Graphics g = img.getGraphics();
 		int offsetX = border;
 		int offsetY = canvas.getHeight()-border;
 		
+		double[] scaleFacs = paintScales(g, numberOfTicks, minVals, maxVals);
+		System.out.println("painting points");
+		paintActualPointsToCanvas(g, scaleFacs, xValues, yValues,  minVals, offsetX, offsetY);
+		canvas.getGraphics().drawImage(img, 0, 0, new ImageObserver() {
+
+			@Override
+			public boolean imageUpdate(Image arg0, int arg1, int arg2,
+					int arg3, int arg4, int arg5) {
+				// TODO Auto-generated method stub
+				return false;
+			}
+			
+		});
+		_drawingState = false;
+	}
+	
+	private void paintActualPointsToCanvas(Graphics g, double[] scaleFacs, double[] xVals, double[] yVals, double[] minVals, int offsetX, int offsetY){		
+		
+		
 		System.out.println("xFac" + scaleFacs[0] + " yFac " +scaleFacs[1]);
-		Graphics g = canvas.getGraphics();
+		//Graphics g = canvas.getGraphics();
+		
+		//g.clearRect(0, 0, canvas1Width, canvas1Height);
+		
 		int x,y;
 		for(int i=0; i<xVals.length;i++){
 			// xVals 1.0 Skala [0.9, 1.1] Breite von 400
@@ -230,14 +250,14 @@ public class TimeDelayedFeedbackApplet extends Applet implements Runnable, Param
 			// xVal = 1.0 => Pixel 200
 			// (xMax - xVal) = 0.1  = (xMax - xVal)*Breite/diffX = PixelZumMalen
 			
-			x = (int) ((maxVals[0] - xVals[i])*scaleFacs[0]) + offsetX;
-			y = offsetY+(int) ((maxVals[1] -yVals[i])*scaleFacs[1]);
+			x = (int) ((xVals[i] - minVals[0])*scaleFacs[0]) + offsetX;
+			y = offsetY - (int) ((yVals[i] - minVals[1])*scaleFacs[1]);
 			if(i== 1)
 			System.out.println("x: " + x + " y " + y);
 			
-			g.drawOval(offsetX+(int) ((maxVals[0] - xVals[i])*scaleFacs[0]), offsetY+(int) ((maxVals[1] -yVals[i])*scaleFacs[1]), circleSize, circleSize);
+			g.drawOval(x, y, circleSize, circleSize);
 			
-		}
+		}		
 	}
 	private double[] getMinimumAndMaximumOfArry(double[] values){
 		double minVal=values[0], maxVal=values[0];
@@ -255,17 +275,17 @@ public class TimeDelayedFeedbackApplet extends Applet implements Runnable, Param
 		return retVal;
 	}
 	
-	private double[] paintScales(Canvas canvas, int[] numberOfTicks, double[] minVal, double[] maxVal) throws Exception{
+	private double[] paintScales(Graphics g, int[] numberOfTicks, double[] minVal, double[] maxVal) throws Exception{
 		double scaleFacs[] = {-1.0,-1.0};
 		if(numberOfTicks.length != 2 || minVal.length != 2 || maxVal.length != 2)
 			throw new Exception();
 		
-		scaleFacs[0]=paintXScale(canvas, numberOfTicks[0], minVal[0], maxVal[0]);
-		scaleFacs[1]=paintYScale(canvas, numberOfTicks[1], minVal[1], maxVal[1]);
+		scaleFacs[0]=paintXScale(g, numberOfTicks[0], minVal[0], maxVal[0]);
+		scaleFacs[1]=paintYScale(g, numberOfTicks[1], minVal[1], maxVal[1]);
 		return scaleFacs;
 	}
 	
-	private double paintXScale(Canvas canvas, int numberOfTicks, double minVal, double maxVal, boolean cutoff){
+	private double paintXScale(Graphics g, int numberOfTicks, double minVal, double maxVal, boolean cutoff){
 		int width = canvas.getWidth();
 		double deltaX = maxVal - minVal;
 		double dX = deltaX/numberOfTicks;
@@ -273,7 +293,7 @@ public class TimeDelayedFeedbackApplet extends Applet implements Runnable, Param
 		if(cutoff)
 			dX = (double) (width/numberOfTicks) < dX ? dX : (double) (width/numberOfTicks);
 		int heightPixel = canvas.getHeight() - border; // wenn skala oben erscheinen soll auch nur border
-		Graphics g = canvas.getGraphics();
+		//Graphics g = canvas.getGraphics();
 		//paint the line
 		g.drawLine(border, heightPixel, width, heightPixel);
 		
@@ -287,10 +307,10 @@ public class TimeDelayedFeedbackApplet extends Applet implements Runnable, Param
 		//System.out.println("width " + width);
 		return width/deltaX;
 	}
-	private double paintXScale(Canvas canvas, int numberOfTicks, double minVal, double maxVal){
-		return paintXScale( canvas,  numberOfTicks,  minVal,  maxVal, false);
+	private double paintXScale(Graphics g, int numberOfTicks, double minVal, double maxVal){
+		return paintXScale( g,  numberOfTicks,  minVal,  maxVal, false);
 	}
-	private double paintYScale(Canvas canvas, int numberOfTicks, double minVal, double maxVal,boolean cutoff){
+	private double paintYScale(Graphics g, int numberOfTicks, double minVal, double maxVal,boolean cutoff){
 		int height = canvas.getHeight();
 		double deltaY = maxVal - minVal;
 		double dY = deltaY/numberOfTicks;
@@ -298,7 +318,7 @@ public class TimeDelayedFeedbackApplet extends Applet implements Runnable, Param
 		if(cutoff)
 			dY = (double) (height/numberOfTicks) < dY ? dY : (double) (height/numberOfTicks);
 		int widthPixel = border; // wenn skala oben erscheinen soll auch nur border
-		Graphics g = canvas.getGraphics();
+		//Graphics g = canvas.getGraphics();
 		//paint the line
 		g.drawLine(widthPixel, border , widthPixel, height);
 		
@@ -310,8 +330,8 @@ public class TimeDelayedFeedbackApplet extends Applet implements Runnable, Param
 		}
 		return height/deltaY;
 	}
-	private double paintYScale(Canvas canvas, int numberOfTicks, double minVal, double maxVal){
-		return paintYScale( canvas,  numberOfTicks,  minVal,  maxVal, false);
+	private double paintYScale(Graphics g, int numberOfTicks, double minVal, double maxVal){
+		return paintYScale( g,  numberOfTicks,  minVal,  maxVal, false);
 	}
 	
 	/**
